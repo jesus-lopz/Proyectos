@@ -1,0 +1,165 @@
+package utilidades;
+
+import java.awt.Dimension;
+import java.awt.Image;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.ArrayList;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import java.io.IOException;
+
+public class Utilidades {
+       
+//Funcion 1 mostrar un panel con contenido JPanel(instancePanel) dentro de un panel contenedor JPanel(contentPanel).
+
+//Para llamar a la funcion: utilidades.ShowPanel(panelNameContenedor, panelNameContenido);
+
+public static void ShowPanel(JPanel contentPanel, JPanel instancePanel, Dimension dimension){
+        
+    //Forzar el tamaño del panel contenido en el contenedor en .setSize (linea inferior).
+    /*Dimension contentPanelSize = contentPanel.getSize();    
+    instancePanel.setSize(contentPanelSize);*/
+    
+        int newWidth = dimension.width;
+        int newHeight = dimension.height;
+        
+    instancePanel.setSize(dimension.width, dimension.height);
+    instancePanel.setLocation(0,0);
+        
+    contentPanel.removeAll();
+    contentPanel.add(instancePanel);
+    contentPanel.revalidate();
+    contentPanel.repaint();
+}
+
+
+/*Funcion 2 y 3 ajustar una imagen en un JLabel(label) mediante su directorio String(root) 
+pudiendo o no ser redimensionada Boolean(keepProportions), Dimension(dimension).*/
+
+//Para llamar: utilidades.SetImageLabel(true/false,labelName, "rutaImagen", new Dimension(0,0);)
+
+public static void SetImageLabel(Boolean keepProportions, JLabel label, String root, Dimension dimension){
+
+    //Si el boleano es true mantiene las proporciones del label e ignora el parametro dimension.
+    if(keepProportions == true){
+        //Selecciona la ruta de la imagen
+        ImageIcon image = new ImageIcon(root);
+        
+        int newWidth = label.getWidth();
+        int newHeight = label.getHeight();
+
+        Icon icon = new ImageIcon(image.getImage().getScaledInstance(newWidth, newHeight, Image.SCALE_DEFAULT));
+        label.setIcon(icon);
+        label.repaint();
+
+    //Si el boleano es false toma las medidas de dimension para ajustar el tamaño.
+    }else{
+        //Selecciona la ruta de la imagen
+        ImageIcon image = new ImageIcon(root);
+        
+        int newWidth = dimension.width;
+        int newHeight = dimension.height;
+       
+        Icon icon = new ImageIcon(image.getImage().getScaledInstance(newWidth, newHeight, Image.SCALE_DEFAULT));
+        label.setIcon(icon);
+        label.repaint();
+    }
+}
+
+
+//Funcion 4 crear un ArrayList<String> que devuelva una lista con rutas de archivos con el mismo nombre y un número, (eje: Foto1, Foto2, Foto3).
+
+/*Para llamar: Indicar los valores antes(String root = "", String name = "", etc) y usar la siguiente linea.
+ArrayList<String> nombreQueQuieras = utilidades.CreateStringList(root, name, fileType,size);     */
+
+public static ArrayList<String> CreateStringList(String root, String name, String fileType, int size){
+
+    //Lista de rutas de los archivos
+    ArrayList<String> fileList = new ArrayList<>();
+    
+    //Representamos la ruta con un objeto File y obtenemos los archivos de la ruta.
+    File ruta = new File(root);
+    File[] archivos = ruta.listFiles();
+
+    //Añadimos el contador para los nombres de los archivos, Foto1, Foto2, Foto3...
+    int contadorNombre = 1;
+    
+    //Bucle para recorrer cada archivo de archivos.
+    for(File archivo : archivos){
+        
+        //Buscamos los archivos que empiecen por name y acaben en el fileType indicado.
+        if(archivo.isFile() && archivo.getName().startsWith(name) && archivo.getName().endsWith(fileType)){
+        
+        String newNameArchivo = name+contadorNombre+fileType;
+        
+        File newFile = new File(ruta, newNameArchivo);
+        
+        if(newFile.exists()){
+            fileList.add(newFile.getAbsolutePath());
+        }
+        
+        //Aumentamos el contador de los nombres.
+        contadorNombre++;
+        }
+
+        //Cuando la lista llegue al tamaño que pongamos, se para el bucle.
+        if(fileList.size() >= size){
+        break;
+        }            
+    }
+    return fileList;
+}
+
+
+//Funcion 5 leer un archivo de texto en la ruta especificada y devolverlo como un string.
+
+//Para llamar la funcion: indicar el String root = ""; y utilizar String cualquierNombre = Utilidades.ReadFile(root);
+//Para imprimir en pantalla simplemente añade una linea Syso(cualquierNombre)
+
+public static String ReadFile(String root){
+    
+    //Creamos el String builder que devolvera la cadena de texto
+    StringBuilder texto = new StringBuilder();
+    
+    //Guardamos la lectura temporalmente, del archivo de root
+    try(BufferedReader br = new BufferedReader(new FileReader(root))){
+        
+        //Usamos el String line para leer lineas y añadir saltos igual que en el archivo.
+        String line;
+        while((line = br.readLine()) != null){
+            texto.append(line).append("\n");
+        }
+    //Capturamos las excepciones y las imprimimos para ver el problema  
+    }catch(IOException e){
+        e.printStackTrace();
+    }
+    return texto.toString();
+}
+
+//Ultima funcion: con dos variables, long waitTime y Runnable asyncFunction.
+
+//Para llamar la funcion async: Utilidades.executeAsync(tiempo en ms, () -> {});
+
+public static void ExecuteAsync(long waitTime, Runnable asyncFunction){
+    
+    //Creamos un hilo para la funcion asincrona
+    Thread thread = new Thread(() ->{
+        //Hacemos un try/catch para las posibles interrupciones en el tiempo de espera.
+        try{            
+            Thread.sleep(waitTime);
+        }catch(InterruptedException e){
+            e.printStackTrace();
+        }
+        //Ejecutamos la funcion despues del tiempo de espera.
+        asyncFunction.run();
+    });
+    //Iniciamos el hilo
+    thread.start();   
+}
+
+
+}
